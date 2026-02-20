@@ -17,11 +17,11 @@ export interface ICategoriesData {
   savings: ICategory[];
 }
 
-//What my entrypost intails when its saved in localstorage
+//What my entrypost entails when its saved in localstorage
 export interface IEntry {
-  id: string; // uniqe id for delete
+  id: string; // unique id for delete
   type: EntryType; // income | expense | savnings (EntryType)
-  amount: number; // amout of money
+  amount: number; // amount of money
   categoryId: string; // matches the exact id (salary | gift ...)
   note: string; // users own note
   createdAt: string; // date YYYY-MM-DD

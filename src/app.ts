@@ -70,7 +70,7 @@ function resetEntryFields(form: HTMLFormElement): void {
   if (noteInput) noteInput.value = "";
   if (categorySelect) categorySelect.selectedIndex = 0;
 }
-// Formatting amouts
+// Formatting amounts
 function formatMoney(amount: number): string {
   if (!Number.isFinite(amount)) return "0 kr";
 
@@ -164,7 +164,7 @@ function getCreatedAtForNewEntry(): string | null {
         : new Date(state.periodYear, 0, 1);
     return formatDateKey(day);
   }
-  // viewing future period - entrys not possible
+  // viewing future period - entries not possible
   return null;
 }
 // Period filter function
@@ -182,7 +182,7 @@ function isEntryInViewedPeriod(entry: IEntry): boolean {
   );
 }
 
-// add click evenet to modebuttons in header
+// add click event to modebuttons in header
 function initPeriodModeBtns() {
   const btns = document.querySelectorAll<HTMLButtonElement>(".mode-btn");
   if (!btns.length) return;
@@ -199,7 +199,6 @@ function initPeriodModeBtns() {
         b.classList.toggle("is-active", isActive);
         b.setAttribute("aria-pressed", String(isActive));
       });
-      console.log("periodMode är nu:", state.periodMode);
       refreshUIForPeriodChange();
     });
   });
@@ -233,12 +232,12 @@ function changeViewedPeriod(direction: number): void {
   }
   // Monthly jumps on click
   state.periodMonth += direction;
-  //if we go back monthly to a different year > change year buy -1
+  //if we go back monthly to a different year > change year by -1
   if (state.periodMonth < 0) {
     state.periodMonth = 11;
     state.periodYear -= 1;
   }
-  //if we go forward monthly to a different year > change year buy +1
+  //if we go forward monthly to a different year > change year by +1
   if (state.periodMonth > 11) {
     state.periodMonth = 0;
     state.periodYear += 1;
@@ -251,38 +250,42 @@ function changeViewedPeriod(direction: number): void {
 
 // make entries array to string function
 function saveEntriesToLocalStorage() {
-  //actuallay makes the string
+  //actually makes the string
   const stringified = JSON.stringify(state.entries);
-  // saves the strin
+  // saves the string
   localStorage.setItem(LS_DB_ID, stringified);
 }
 // takes the string and reverse it backs to array
-function loadEntriesFromLocalStorage() {
+function loadEntriesFromLocalStorage(): void {
   const saved = localStorage.getItem(LS_DB_ID);
   if (saved === null) return;
 
-  const parsed = JSON.parse(saved) as IEntry[];
-  // always sends back a list with entries no undefined
-  state.entries = parsed.map((entry) => {
-    const createdAt = String(entry.createdAt || "");
+  try {
+    const parsed = JSON.parse(saved) as IEntry[];
 
-    //checking so the dates is ok
-    const looksLikeDateKey = /^\d{4}-\d{2}-\d{2}$/.test(createdAt);
-    //if format ok - keep going
-    if (looksLikeDateKey) {
-      return {
-        ...entry,
-        createdAt,
-      };
-    }
-    //if wrong tell me
-    console.warn("createdAt var inte YYYY-MM-DD, fixar:", entry.createdAt);
+    state.entries = parsed.map((entry) => {
+      const createdAt = String(entry.createdAt || "");
+      const looksLikeDateKey = /^\d{4}-\d{2}-\d{2}$/.test(createdAt);
 
-    return {
-      ...entry,
-      createdAt: getTodayDate(),
-    };
-  });
+      if (looksLikeDateKey) {
+        return {
+          ...entry,
+          createdAt,
+        };
+      }
+
+      console.warn("createdAt var inte YYYY-MM-DD, fixar:", entry.createdAt);
+      return { ...entry, createdAt: getTodayDate() };
+    });
+  } catch (err: unknown) {
+    console.warn(
+      "Kunde inte läsa localStorage (trasig JSON). Nollställer.",
+      err,
+    );
+
+    state.entries = [];
+    localStorage.removeItem(LS_DB_ID);
+  }
 }
 
 //-----------------------------------------------------------
@@ -578,12 +581,6 @@ function initTabs() {
 
 //  INIT FUNCTION FOR UI
 function refreshUIForPeriodChange() {
-  console.log(
-    "refresh körs:",
-    state.periodYear,
-    state.periodMonth,
-    state.periodMode,
-  );
   renderAllEntries();
   updateTotalAmount();
   updateBalanceSummary();
